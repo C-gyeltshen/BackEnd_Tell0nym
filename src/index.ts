@@ -12,17 +12,18 @@ app.get("/", (c) => {
 // ? Example of JSON response from backend to frontend
 app.get("/example-json", (c) => {
   //! Get data from SQL DB using prisma or whatever
-  const jsonmsg = { message: "Hello Hono!" };
+  const jsonmsg = { message: "Hello from backend!" };
 
   //! get data from MongoDB using mongoose or whatever
-  // do your business logic here
+
+  //? do your business logic here
   // if sth {
   // do sth
   // else {
   // do sth else
   //}
 
-  return c.json(jsonmsg);
+  return c.json({ jsonmsg });
 });
 
 serve({
