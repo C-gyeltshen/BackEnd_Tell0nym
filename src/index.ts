@@ -80,7 +80,7 @@ app.post('/login', async (c)=>{
 });
 
 
-
+// Adding tells in the tells table
 app.post('/tells', async (c) => {
   try {
     const { sender_id, receiver_id, message, status, user_name } = await c.req.json();
@@ -108,6 +108,34 @@ app.post('/tells', async (c) => {
   }
 });
 
+app.get('/private/inbox', async (c) => {
+  try {
+    const statusZeroRecords = await prisma.tells.findMany({
+      where: { status: 0 } 
+    });
+
+    if (statusZeroRecords.length === 0) {
+      return c.json({ message: 'No tells found with status false' });
+    }
+
+    return c.json(statusZeroRecords);
+  } catch (error) { 
+    console.error(error);
+    return c.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// app.patch('/inbox/update',async (c)=>{
+//   try {
+//     const status_update = await prisma.tells.update({
+//       where : {
+        
+//       }
+//     })
+//   } catch (c){
+
+//   }
+// })
 
 const port = 8080;
 console.log(`Server is running on port ${port}`);
