@@ -128,9 +128,9 @@ app.get('/private/inbox', async (c) => {
 // app.patch('/inbox/update',async (c)=>{
 //   try {
 //     const status_update = await prisma.tells.update({
-//       where : {
+//       where : 
         
-//       }
+  
 //     })
 //   } catch (c){
 
