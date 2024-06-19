@@ -17,6 +17,7 @@ model tells {
   reply         String?
   user_name     String  @db.VarChar(100)
   status        Int     @default(0)
+  like_count    Int     @default(0)
   users         users   @relation(fields: [user_name], references: [user_name], onDelete: NoAction, onUpdate: NoAction)
 }
 
@@ -26,4 +27,26 @@ model users {
   email     String  @unique @db.VarChar(100)
   password  String  @db.VarChar(100)
   tells     tells[]
+  followers followers[] @relation("UserFollowers")
+  following following[] @relation("UserFollowing")
+}
+
+model followers {
+  user_id      Int
+  follower_id  Int
+  user_name    String  @db.VarChar(100)
+  count        Int     @default(0)
+  user         users   @relation("UserFollowers", fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  
+  @@id([user_id, follower_id])
+}
+
+model following {
+  user_id       Int
+  following_id  Int
+  user_name     String  @db.VarChar(100)
+  count         Int     @default(0)
+  user          users   @relation("UserFollowing", fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  
+  @@id([user_id, following_id])
 }

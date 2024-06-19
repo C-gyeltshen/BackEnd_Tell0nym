@@ -137,6 +137,154 @@ app.get('/private/inbox', async (c) => {
 //   }
 // })
 
+
+
+
+// follow a user
+app.post('/follow', async (c) => {
+  try {
+    const { followerName, followingName } = await c.req.json();
+
+    // Validate the input
+    if (!followerName || !followingName) {
+      return c.json({ error: 'Missing required fields' }, 400);
+    }
+
+    // Fetch the follower and following user records
+    const follower = await prisma.users.findUnique({
+      where: { user_name: followerName },
+    });
+
+    const following = await prisma.users.findUnique({
+      where: { user_name: followingName },
+    });
+
+    // Ensure both users exist
+    if (!follower || !following) {
+      return c.json({ error: 'One or both users not found' }, 404);
+    }
+
+    // Check if the following relationship already exists
+    const existingFollowing = await prisma.following.findUnique({
+      where: { user_id_following_id: { user_id: follower.user_id, following_id: following.user_id } },
+    });
+
+    if (existingFollowing) {
+      return c.json({ message: 'User is already following' }, 409);
+    }
+
+    // Create a new follower record
+    await prisma.followers.create({
+      data: {
+        user_id: following.user_id,
+        follower_id: follower.user_id,
+        user_name: follower.user_name,
+      },
+    });
+
+    // Create a new following record
+    await prisma.following.create({
+      data: {
+        user_id: follower.user_id,
+        following_id: following.user_id,
+        user_name: following.user_name,
+      },
+    });
+
+    return c.json({ message: 'User followed successfully' });
+  } catch (error) {
+    console.error('Error following user:', error);
+    return c.json({ error: `An error occurred while following the user: ${error.message}` }, 500);
+  }
+});
+
+// Get followers of a user
+app.get('/following/:userName', async (c) => {
+  const { userName } = c.req.param();
+
+  try {
+    // Fetch the user to get the user_id
+    const user = await prisma.users.findUnique({
+      where: { user_name: userName },
+      select: { user_id: true },
+    });
+
+    if (!user) {
+      return c.json({ error: 'User not found' }, 404);
+    }
+
+    // Fetch the following relationships with user details
+    const following = await prisma.following.findMany({
+      where: { user_id: user.user_id },
+      include: { user: { select: { user_name: true, email: true } } }, // Add other fields you want to include
+    });
+
+    return c.json(following);
+  } catch (error) {
+    console.error('Error fetching following:', error);
+    return c.json({ error: 'An error occurred while fetching following relationships' }, 500);
+  }
+});
+
+
+
+// Unfollow a user
+app.post('/unfollow', async (c) => {
+  try {
+    const { followerName, followingName } = await c.req.json();
+
+    // Validate the input
+    if (!followerName || !followingName) {
+      return c.json({ error: 'Missing required fields' }, 400);
+    }
+
+    // Fetch the follower and following user records
+    const follower = await prisma.users.findUnique({
+      where: { user_name: followerName },
+    });
+
+    const following = await prisma.users.findUnique({
+      where: { user_name: followingName },
+    });
+
+    // Ensure both users exist
+    if (!follower || !following) {
+      return c.json({ error: 'One or both users not found' }, 404);
+    }
+
+    // Check if the following relationship exists
+    const existingFollowing = await prisma.following.findUnique({
+      where: { user_id_following_id: { user_id: follower.user_id, following_id: following.user_id } },
+    });
+
+    if (!existingFollowing) {
+      return c.json({ message: 'User is not following' }, 409);
+    }
+
+    // Delete the follower record
+    await prisma.followers.delete({
+      where: {
+        user_id_follower_id: { user_id: following.user_id, follower_id: follower.user_id }
+      },
+    });
+
+    // Delete the following record
+    await prisma.following.delete({
+      where: {
+        user_id_following_id: { user_id: follower.user_id, following_id: following.user_id }
+      },
+    });
+
+    return c.json({ message: 'User unfollowed successfully' });
+  } catch (error) {
+    console.error('Error unfollowing user:', error);
+    return c.json({ error: `An error occurred while unfollowing the user: ${error.message}` }, 500);
+  }
+});
+
+
+
+
 const port = 8080;
 console.log(`Server is running on port ${port}`);
 
