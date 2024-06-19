@@ -125,6 +125,41 @@ app.get('/private/inbox', async (c) => {
   }
 });
 
+// post the reply and turn the status to 1
+app.post('/tells/:tellid', async (c) => {
+  try {
+    const tellId = parseInt(c.req.param('tellid'));
+    const { reply } = await c.req.json();
+
+    // Check if the tell exists and has a status of 0
+    const existingTell = await prisma.tells.findUnique({
+      where: {
+        id: tellId,
+      },
+    });
+
+    if (!existingTell || existingTell.status !== 0) {
+      return c.json({ error: 'Invalid tell or tell already answered' }, 400);
+    }
+
+    // Update the tell with the reply and set the status to 1
+    const updatedTell = await prisma.tells.update({
+      where: {
+        id: tellId,
+      },
+      data: {
+        reply,
+        status: 1,
+      },
+    });
+
+    return c.json(updatedTell);
+  } catch (error) {
+    console.error('Error updating tell:', error);
+    return c.json({ error: 'An error occurred while updating the tell' }, 500);
+  }
+});
+
 // app.patch('/inbox/update',async (c)=>{
 //   try {
 //     const status_update = await prisma.tells.update({
@@ -282,6 +317,158 @@ app.post('/unfollow', async (c) => {
   }
 });
 
+
+// GET user name
+app.get('/users/:userId/username', async (c) => {
+  try {
+    const userId = parseInt(c.req.param('userId'));
+
+    // Find the user by their ID
+    const user = await prisma.users.findUnique({
+      where: {
+        user_id: userId,
+      },
+      select: {
+        user_name: true,
+      },
+    });
+
+    if (!user) {
+      return c.json({ error: 'User not found' }, 404);
+    }
+
+    return c.json({ user_name: user.user_name });
+  } catch (error) {
+    console.error('Error retrieving user name:', error);
+    return c.json({ error: 'An error occurred while retrieving user name' }, 500);
+  }
+});
+
+// Get tells with status 1
+app.get('/tells/:userId', async (c) => {
+  try {
+    const userId = parseInt(c.req.param('userId'));
+
+    // Retrieve the tells for the specified user with status 1, including the message and reply fields
+    const userTells = await prisma.tells.findMany({
+      where: {
+        receiver_id: userId,
+        status: 1,
+      },
+      select: {
+        id: true,
+        sender_id: true,
+        receiver_id: true,
+        message: true,
+        reply: true,
+        user_name: true,
+      },
+    });
+
+    if (userTells.length === 0) {
+      return c.json({ message: 'No tells found for the specified user with status 1' });
+    }
+
+    return c.json(userTells);
+  } catch (error) {
+    console.error('Error retrieving user tells:', error);
+    return c.json({ error: 'An error occurred while retrieving user tells' }, 500);
+  }
+});
+
+// Endpoint for incrementing react_count meaning add
+app.patch('/tells/:tellId/react', async (c) => {
+  try {
+    const tellId = parseInt(c.req.param('tellId'));
+
+    // Find the existing tell by its ID
+    const existingTell = await prisma.tells.findUnique({
+      where: {
+        id: tellId,
+      },
+    });
+
+    if (!existingTell) {
+      return c.json({ error: 'Tell not found' }, 404);
+    }
+
+    // Increment the react_count
+    const updatedTell = await prisma.tells.update({
+      where: {
+        id: tellId,
+      },
+      data: {
+        react_count: existingTell.react_count ? existingTell.react_count + 1 : 1,
+      },
+    });
+
+    return c.json(updatedTell);
+  } catch (error) {
+    console.error('Error incrementing react count:', error);
+    return c.json({ error: 'An error occurred while incrementing react count' }, 500);
+  }
+});
+
+// add the comment
+app.patch('/tells/:tellId/comment', async (c) => {
+  try {
+    const tellId = parseInt(c.req.param('tellId'));
+
+    // Find the existing tell by its ID
+    const existingTell = await prisma.tells.findUnique({
+      where: {
+        id: tellId,
+      },
+    });
+
+    if (!existingTell) {
+      return c.json({ error: 'Tell not found' }, 404);
+    }
+
+    // Increment the comment_count
+    const updatedTell = await prisma.tells.update({
+      where: {
+        id: tellId,
+      },
+      data: {
+        comment_count: existingTell.comment_count ? existingTell.comment_count + 1 : 1,
+      },
+    });
+
+    return c.json(updatedTell);
+  } catch (error) {
+    console.error('Error incrementing comment count:', error);
+    return c.json({ error: 'An error occurred while incrementing comment count' }, 500);
+  }
+});// Endpoint for incrementing comment_count
+
+
+// get the counts
+app.get('/tells/:tellId/counts', async (c) => {
+  try {
+    const tellId = parseInt(c.req.param('tellId'));
+
+    // Find the tell by its ID
+    const tell = await prisma.tells.findUnique({
+      where: {
+        id: tellId,
+      },
+      select: {
+        react_count: true,
+        comment_count: true,
+      },
+    });
+
+    if (!tell) {
+      return c.json({ error: 'Tell not found' }, 404);
+    }
+
+    return c.json(tell);
+  } catch (error) {
+    console.error('Error retrieving tell counts:', error);
+    return c.json({ error: 'An error occurred while retrieving tell counts' }, 500);
+  }
+});
 
 
 
