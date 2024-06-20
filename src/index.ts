@@ -131,7 +131,7 @@ app.get('/private/inbox', async (c) => {
   }
 });
 
-<<<<<<< Updated upstream
+
 // post the reply and turn the status to 1
 app.post('/tells/:tellid', async (c) => {
   try {
