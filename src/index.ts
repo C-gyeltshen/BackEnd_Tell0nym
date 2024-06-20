@@ -6,6 +6,7 @@ import bcrypt from 'bcrypt';
 import { HTTPException } from "hono/http-exception";
 import { decode, sign, verify } from "hono/jwt";
 import { BADFAMILY } from 'dns';
+import { jwtMiddleware } from './middlewares/authMiddleware';
 
 const prisma = new PrismaClient();
 
@@ -15,6 +16,12 @@ app.use('*', cors());
 
 app.get('/', (c) => {
   return c.text('Hello Hono!');
+});
+
+//Protected Routs 
+app.get('/protected-route', jwtMiddleware, (c) => {
+  const user = c.get('jwtPayload'); 
+  return c.json({ message: 'This is a protected route', user });
 });
 
 // User signUp
@@ -79,7 +86,6 @@ app.post('/login', async (c)=>{
   }
 });
 
-
 // Adding tells in the tells table
 app.post('/tells', async (c) => {
   try {
@@ -125,6 +131,7 @@ app.get('/private/inbox', async (c) => {
   }
 });
 
+<<<<<<< Updated upstream
 // post the reply and turn the status to 1
 app.post('/tells/:tellid', async (c) => {
   try {
@@ -176,6 +183,9 @@ app.post('/tells/:tellid', async (c) => {
 
 
 // follow a user
+=======
+// FOLLOW A USER
+>>>>>>> Stashed changes
 app.post('/follow', async (c) => {
   try {
     const { followerName, followingName } = await c.req.json();
@@ -233,7 +243,7 @@ app.post('/follow', async (c) => {
   }
 });
 
-// Get followers of a user
+// GET FOLLOWERS OF A USER
 app.get('/following/:userName', async (c) => {
   const { userName } = c.req.param();
 
@@ -261,9 +271,7 @@ app.get('/following/:userName', async (c) => {
   }
 });
 
-
-
-// Unfollow a user
+// UNFOLLOW A USER
 app.post('/unfollow', async (c) => {
   try {
     const { followerName, followingName } = await c.req.json();
@@ -317,6 +325,7 @@ app.post('/unfollow', async (c) => {
   }
 });
 
+<<<<<<< Updated upstream
 
 // GET user name
 app.get('/users/:userId/username', async (c) => {
@@ -472,6 +481,8 @@ app.get('/tells/:tellId/counts', async (c) => {
 
 
 
+=======
+>>>>>>> Stashed changes
 const port = 8080;
 console.log(`Server is running on port ${port}`);
 
