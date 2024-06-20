@@ -182,10 +182,8 @@ app.post('/tells/:tellid', async (c) => {
 
 
 
-// follow a user
-=======
+
 // FOLLOW A USER
->>>>>>> Stashed changes
 app.post('/follow', async (c) => {
   try {
     const { followerName, followingName } = await c.req.json();
@@ -193,6 +191,11 @@ app.post('/follow', async (c) => {
     // Validate the input
     if (!followerName || !followingName) {
       return c.json({ error: 'Missing required fields' }, 400);
+    }
+
+    // Check if the follower and following are the same
+    if (followerName === followingName) {
+      return c.json({ error: 'You cannot follow yourself' }, 400);
     }
 
     // Fetch the follower and following user records
@@ -236,6 +239,12 @@ app.post('/follow', async (c) => {
       },
     });
 
+    // Increment the follower count for the following user
+    await prisma.users.update({
+      where: { user_id: following.user_id },
+      data: { followers: { increment: 1 } },
+    });
+
     return c.json({ message: 'User followed successfully' });
   } catch (error) {
     console.error('Error following user:', error);
@@ -243,7 +252,10 @@ app.post('/follow', async (c) => {
   }
 });
 
-// GET FOLLOWERS OF A USER
+
+
+
+// GET THE FOLLOWERS AND FOLLOWING OF A USER
 app.get('/following/:userName', async (c) => {
   const { userName } = c.req.param();
 
@@ -271,7 +283,9 @@ app.get('/following/:userName', async (c) => {
   }
 });
 
-// UNFOLLOW A USER
+
+
+// Unfollow a user
 app.post('/unfollow', async (c) => {
   try {
     const { followerName, followingName } = await c.req.json();
@@ -318,12 +332,19 @@ app.post('/unfollow', async (c) => {
       },
     });
 
+    // Decrement the follower count for the following user
+    await prisma.users.update({
+      where: { user_id: following.user_id },
+      data: { followers: { decrement: 1 } },
+    });
+
     return c.json({ message: 'User unfollowed successfully' });
   } catch (error) {
     console.error('Error unfollowing user:', error);
     return c.json({ error: `An error occurred while unfollowing the user: ${error.message}` }, 500);
   }
 });
+
 
 <<<<<<< Updated upstream
 
