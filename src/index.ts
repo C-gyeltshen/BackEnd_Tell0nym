@@ -58,6 +58,8 @@ app.post('/login', async (c)=>{
 
     const body = await c.req.json();
 
+    console.log(body.email,body.password)
+
     const user = await prisma.users.findUnique({
       where:{
         email: body.email
@@ -78,7 +80,7 @@ app.post('/login', async (c)=>{
       const secret = process.env.JWT_SECRET || "mySecretKey";
       const token = await sign(payload, secret);
       return c.json({ message: "Login successful", token });
-
+      // return c.header('Authorization',token)
 
   }catch (error) {
     console.error(error);
@@ -87,7 +89,7 @@ app.post('/login', async (c)=>{
 });
 
 // Adding tells in the tells table
-app.post('/tells', async (c) => {
+app.post('/tells/add', async (c) => {
   try {
     const { sender_id, receiver_id, message, status, user_name } = await c.req.json();
 
@@ -131,7 +133,6 @@ app.get('/private/inbox', async (c) => {
   }
 });
 
-<<<<<<< Updated upstream
 // post the reply and turn the status to 1
 app.post('/tells/:tellid', async (c) => {
   try {
@@ -167,25 +168,7 @@ app.post('/tells/:tellid', async (c) => {
   }
 });
 
-// app.patch('/inbox/update',async (c)=>{
-//   try {
-//     const status_update = await prisma.tells.update({
-//       where : 
-        
-  
-//     })
-//   } catch (c){
-
-//   }
-// })
-
-
-
-
-// follow a user
-=======
-// FOLLOW A USER
->>>>>>> Stashed changes
+ // FOLLOW A USER
 app.post('/follow', async (c) => {
   try {
     const { followerName, followingName } = await c.req.json();
@@ -325,7 +308,6 @@ app.post('/unfollow', async (c) => {
   }
 });
 
-<<<<<<< Updated upstream
 
 // GET user name
 app.get('/users/:userId/username', async (c) => {
@@ -479,10 +461,30 @@ app.get('/tells/:tellId/counts', async (c) => {
   }
 });
 
+// Endpoint to fetch all users' tells and replies with status 1
+app.get('/tells', async (c) => {
+  try {
+    // get all tells with status 1 and include their replies (if any)
+    const userTellsWithReplies = await prisma.tells.findMany({
+      where: {
+        status: 1,
+      },
+      include: {
+        users: true, // Include the related user data
+      },
+    });
 
+    if (userTellsWithReplies.length === 0) {
+      return c.json({ message: 'No tells found with status 1' });
+    }
 
-=======
->>>>>>> Stashed changes
+    return c.json(userTellsWithReplies);
+  } catch (error) {
+    console.error('Error fetching user tells with replies:', error);
+    return c.status(500).json({ error: 'An error occurred while fetching user tells with replies' });
+  }
+});
+
 const port = 8080;
 console.log(`Server is running on port ${port}`);
 
