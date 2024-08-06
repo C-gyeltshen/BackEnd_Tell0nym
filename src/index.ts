@@ -7,6 +7,9 @@ import { HTTPException } from "hono/http-exception";
 import { decode, sign, verify } from "hono/jwt";
 import { BADFAMILY } from 'dns';
 import { jwtMiddleware } from './middlewares/authMiddleware';
+import Cookies from 'universal-cookie';
+import { access } from 'fs';
+import { setCookie } from 'hono/cookie';
 
 const prisma = new PrismaClient();
 
@@ -79,8 +82,27 @@ app.post('/login', async (c)=>{
       };
       const secret = process.env.JWT_SECRET || "mySecretKey";
       const token = await sign(payload, secret);
-      return c.json({ message: "Login successful", token });
+      // return c.json({ message: "Login successful", token });
       // return c.header('Authorization',token)
+      const cookies_name = "accessToken"
+      const cookies_value = token
+
+      const cookies = setCookie(c, cookies_name, cookies_value, {
+        path: '/',
+        secure: true,
+        domain: '127.0.0.1:3000',
+        httpOnly: true,
+        maxAge: 1000,
+        expires: new Date(Date.UTC(2024 , 11, 24, 10, 30, 59, 900)),
+        sameSite: 'Strict',
+      })
+      
+      return c.json({'cookies':cookies})
+
+      
+      
+
+
 
   }catch (error) {
     console.error(error);
@@ -116,6 +138,7 @@ app.post('/tells/add', async (c) => {
   }
 });
 
+// get all the tells with status 0
 app.get('/private/inbox', async (c) => {
   try {
     const statusZeroRecords = await prisma.tells.findMany({
