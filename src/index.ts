@@ -191,7 +191,23 @@ app.post('/tells/:tellid', async (c) => {
   }
 });
 
+<<<<<<< Updated upstream
  // FOLLOW A USER
+=======
+// app.patch('/inbox/update',async (c)=>{
+//   try {
+//     const status_update = await prisma.tells.update({
+//       where : 
+        
+  
+//     })
+//   } catch (c){
+
+//   }
+// })
+
+// FOLLOW A USER
+>>>>>>> Stashed changes
 app.post('/follow', async (c) => {
   try {
     const { followerName, followingName } = await c.req.json();
@@ -277,7 +293,11 @@ app.get('/following/:userName', async (c) => {
   }
 });
 
+<<<<<<< Updated upstream
 // UNFOLLOW A USER
+=======
+// Unfollow a user
+>>>>>>> Stashed changes
 app.post('/unfollow', async (c) => {
   try {
     const { followerName, followingName } = await c.req.json();
@@ -331,7 +351,10 @@ app.post('/unfollow', async (c) => {
   }
 });
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 // GET user name
 app.get('/users/:userId/username', async (c) => {
   try {
@@ -501,6 +524,7 @@ app.get('/tells', async (c) => {
       return c.json({ message: 'No tells found with status 1' });
     }
 
+<<<<<<< Updated upstream
     return c.json(userTellsWithReplies);
   } catch (error) {
     console.error('Error fetching user tells with replies:', error);
@@ -508,6 +532,8 @@ app.get('/tells', async (c) => {
   }
 });
 
+=======
+>>>>>>> Stashed changes
 const port = 8080;
 console.log(`Server is running on port ${port}`);
 
