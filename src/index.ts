@@ -56,57 +56,36 @@ app.post('/signup', async (c) => {
 });
 
 // User login
-app.post('/login', async (c)=>{
-  try{
-
+app.post('/login', async (c) => {
+  try {
     const body = await c.req.json();
-
-    console.log(body.email,body.password)
-
     const user = await prisma.users.findUnique({
-      where:{
-        email: body.email
-      },
+      where: { email: body.email },
       select: { email: true, password: true },
     });
+
     if (!user) {
       return c.json({ message: "User not found" }, 404);
     }
+
     const passwordMatch = await bcrypt.compare(body.password, user.password);
-      if (!passwordMatch) {
-        throw new HTTPException(401, { message: "Invalid credentials" });
-      }
-      const payload = {
-        sub: body.email,
-        exp: Math.floor(Date.now() / 1000) + 60 * 60,
-      };
-      const secret = process.env.JWT_SECRET || "mySecretKey";
-      const token = await sign(payload, secret);
-      // return c.json({ message: "Login successful", token });
-      // return c.header('Authorization',token)
-      const cookies_name = "accessToken"
-      const cookies_value = token
+    if (!passwordMatch) {
+      return c.json({ message: "Invalid credentials" }, 401);
+    }
 
-      const cookies = setCookie(c, cookies_name, cookies_value, {
-        path: '/',
-        secure: true,
-        domain: '127.0.0.1:3000',
-        httpOnly: true,
-        maxAge: 1000,
-        expires: new Date(Date.UTC(2024 , 11, 24, 10, 30, 59, 900)),
-        sameSite: 'Strict',
-      })
-      
-      return c.json({'cookies':cookies})
+    const payload = {
+      sub: body.email,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour expiration
+    };
+    const secret = process.env.JWT_SECRET || "mySecretKey";
+    const token = await sign(payload, secret);
 
-      
-      
+    c.header("Set-Cookie", `accessToken=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=3600;`);
 
-
-
-  }catch (error) {
+    return c.json({ message: "Login successful" });
+  } catch (error) {
     console.error(error);
-    throw new HTTPException(401, { message: "Invalid credentials" });
+    return c.json({ message: "Internal server error" }, 500);
   }
 });
 
