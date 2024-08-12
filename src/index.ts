@@ -82,7 +82,7 @@ app.post('/login', async (c) => {
 
     c.header("Set-Cookie", `accessToken=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=3600;`);
 
-    return c.json({ message: "Login successful" });
+    return c.json({ "token": token });
   } catch (error) {
     console.error(error);
     return c.json({ message: "Internal server error" }, 500);
