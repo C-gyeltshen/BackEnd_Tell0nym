@@ -89,6 +89,7 @@ app.post('/login', async (c) => {
   }
 });
 
+
 // Adding tells in the tells table
 app.post('/tells/add', async (c) => {
   try {
