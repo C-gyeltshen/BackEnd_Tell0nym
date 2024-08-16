@@ -55,7 +55,7 @@ app.post('/signup', async (c) => {
   }
 });
 
-// User login
+// User loginq
 app.post('/login', async (c) => {
   try {
     const body = await c.req.json();
@@ -88,7 +88,26 @@ app.post('/login', async (c) => {
     return c.json({ message: "Internal server error" }, 500);
   }
 });
+app.get('/tells/replied', async (c) => {
+  try {
+    // Fetch all tells with status = 1, including both the question and replies
+    const repliedTells = await prisma.tells.findMany({
+      where: {
+        status: 1, // Only fetch tells that have been replied to
+      },
+      select: {
+        message: true, // Select the message (question)
+        reply: true,   // Select the reply
+        
+      },
+    });
 
+    return c.json(repliedTells);
+  } catch (error) {
+    console.error(error);
+    return c.json({ error: 'Failed to retrieve replied tells' }, 500);
+  }
+});
 
 // Adding tells in the tells table
 app.post('/tells/add', async (c) => {
@@ -139,8 +158,12 @@ app.get('/private/inbox', async (c) => {
 // post the reply and turn the status to 1
 app.post('/tells/:tellid', async (c) => {
   try {
-    const tellId = parseInt(c.req.param('tellid'));
+    const tellId = parseInt(c.req.param('tellid')); // Ensure this is correctly parsed
     const { reply } = await c.req.json();
+
+    if (isNaN(tellId)) {
+      return c.json({ error: 'Invalid tell ID' }, 400);
+    }
 
     // Check if the tell exists and has a status of 0
     const existingTell = await prisma.tells.findUnique({
@@ -170,7 +193,6 @@ app.post('/tells/:tellid', async (c) => {
     return c.json({ error: 'An error occurred while updating the tell' }, 500);
   }
 });
-
  // FOLLOW A USER
 app.post('/follow', async (c) => {
   try {
